@@ -1,0 +1,65 @@
+#!/usr/bin/php
+
+<?php
+
+    $socket = null;
+    try {
+      $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+      if ($socket === false) {
+        socket_clear_error($socket);
+        return null;
+      }
+
+      $result = socket_connect($socket, "127.0.0.1", 9090);
+      if ($result === false) {
+        socket_clear_error($socket);
+        return null;
+      }
+
+      $input = "GET /neighbors HTTP/1.1\r\n";
+      $output = '';
+
+      socket_write($socket, $input, strlen($input));
+      while ($buffer = socket_read($socket, 2048)) {
+        $output .= $buffer;
+      }
+      socket_close($socket);
+      $mesh_neighbors = json_decode($output, true);
+
+      if ($mesh_neighbors != NULL) {
+        # attempt to reach each neighbor by ping, neighbor info can contain stale references
+        $num_neighbors = 0;
+        foreach ($mesh_neighbors['neighbors'] as $node) {
+          exec("ping -c 1 -W 5 ".$node['ipv4Address'], $output, $return_status);
+          if ($return_status == 0) {
+            $num_neighbors += 1;
+          }
+
+          if ($num_neighbors > 1)
+            break;
+        }
+
+        # set the LED color based on the number of reachable neighbors found
+        if ($num_neighbors > 1) {
+          $red = 0;
+          $green = 255;
+          $blue = 0;
+        } elseif ($num_neighbors == 1) {
+          $red = 0;
+          $green = 0;
+          $blue = 255;
+        } else {
+          $red = 255;
+          $green = 0;
+          $blue = 0;
+        }
+
+        $cmd = "/usr/local/bin/blinkm set-rgb -r $red -g $green -b $blue";
+        #echo $cmd;
+        exec($cmd);
+      } 
+    } catch (Exception $e) {
+      socket_clear_error($socket);
+      return null;
+    }
+?>
