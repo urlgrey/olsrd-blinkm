@@ -54,6 +54,10 @@
           $blue = 0;
         }
 
+        # Stop any existing script
+        exec("/usr/local/bin/blinkm stop-script");
+
+        # Set the LED color
         $cmd = "/usr/local/bin/blinkm set-rgb -r $red -g $green -b $blue";
         #echo $cmd;
         exec($cmd);
