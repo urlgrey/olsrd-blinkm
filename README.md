@@ -25,7 +25,7 @@ Next, install the ```mesh_neighbors_led``` script in /usr/local/bin and set it t
 ```
 sudo cp mesh_neighbors_led /usr/local/bin
 sudo chmod +x /usr/local/bin/mesh_neighbors_led
-sudo echo "* *  * * *     root   /usr/local/bin/mesh_neighbors_led" > /etc/cron.d/blinkm_led
+sudo bash -c 'echo "* *  * * *     root   /usr/local/bin/mesh_neighbors_led" > /etc/cron.d/blinkm_led'
 sudo chmod +x /etc/cron.d/blinkm_led
 ```
 
